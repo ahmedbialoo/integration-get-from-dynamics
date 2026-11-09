@@ -1,0 +1,60 @@
+[DataContractAttribute]
+class TMK_SFRequest
+{
+    DataAreaId DataAreaId;
+    CustAccount AccountNum;
+    TpmContractId ContractId;
+    TransDate FromDate;
+    TransDate ToDate;
+
+    [DataMember("FromDate")]
+    public TransDate parmFromDate(TransDate _FromDate = FromDate)
+    {
+        if (!prmIsDefault(_FromDate))
+        {
+            FromDate = _FromDate;
+        }
+        return FromDate;
+    }
+
+    [DataMember("ToDate")]
+    public TransDate parmToDate(TransDate _ToDate = ToDate)
+    {
+        if (!prmIsDefault(_ToDate))
+        {
+            ToDate = _ToDate;
+        }
+        return ToDate;
+    }
+
+    [DataMember("DataAreaId")]
+    public DataAreaId parmDataAreaId(DataAreaId _DataAreaId = DataAreaId)
+    {
+        if (!prmIsDefault(_DataAreaId))
+        {
+            DataAreaId = _DataAreaId;
+        }
+        return DataAreaId;
+    }
+
+    [DataMember("AccountNum")]
+    public CustAccount parmAccountNum(CustAccount _AccountNum = AccountNum)
+    {
+        if (!prmIsDefault(_AccountNum))
+        {
+            AccountNum = _AccountNum;
+        }
+        return AccountNum;
+    }
+
+    [DataMember("ContractId")]
+    public TpmContractId parmContractId(TpmContractId _ContractId = ContractId)
+    {
+        if (!prmIsDefault(_ContractId))
+        {
+            ContractId = _ContractId;
+        }
+        return ContractId;
+    }
+
+}
