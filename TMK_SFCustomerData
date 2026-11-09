@@ -1,0 +1,89 @@
+[DataContractAttribute]
+class TMK_SFCustomerData
+{
+    CustAccount AccountNum;
+    Name Name;
+    str CustomerType;
+    CustGroupId CustGroup;
+    CurrencyCode Currency;
+    LogisticsAddressCountryRegionId CountryRegion;
+    List Contracts;
+
+    public void new()
+    {
+        Contracts = new List(Types::Class);
+    }
+
+    [DataMember("Contracts"),
+     AifCollectionTypeAttribute('return', Types::Class, classStr(TMK_SFContractData)),
+     AifCollectionTypeAttribute('_Contracts', Types::Class, classStr(TMK_SFContractData))]
+    public List parmContracts(List _Contracts = Contracts)
+    {
+        if (!prmIsDefault(_Contracts))
+        {
+            Contracts = _Contracts;
+        }
+        return Contracts;
+    }
+
+    [DataMember("AccountNum")]
+    public CustAccount parmAccountNum(CustAccount _AccountNum = AccountNum)
+    {
+        if (!prmIsDefault(_AccountNum))
+        {
+            AccountNum = _AccountNum;
+        }
+        return AccountNum;
+    }
+
+    [DataMember("Name")]
+    public Name parmName(Name _Name = Name)
+    {
+        if (!prmIsDefault(_Name))
+        {
+            Name = _Name;
+        }
+        return Name;
+    }
+
+    [DataMember("CustomerType")]
+    public str parmCustomerType(str _CustomerType = CustomerType)
+    {
+        if (!prmIsDefault(_CustomerType))
+        {
+            CustomerType = _CustomerType;
+        }
+        return CustomerType;
+    }
+
+    [DataMember("CustGroup")]
+    public CustGroupId parmCustGroup(CustGroupId _CustGroup = CustGroup)
+    {
+        if (!prmIsDefault(_CustGroup))
+        {
+            CustGroup = _CustGroup;
+        }
+        return CustGroup;
+    }
+
+    [DataMember("Currency")]
+    public CurrencyCode parmCurrency(CurrencyCode _Currency = Currency)
+    {
+        if (!prmIsDefault(_Currency))
+        {
+            Currency = _Currency;
+        }
+        return Currency;
+    }
+
+    [DataMember("CountryRegion")]
+    public LogisticsAddressCountryRegionId parmCountryRegion(LogisticsAddressCountryRegionId _CountryRegion = CountryRegion)
+    {
+        if (!prmIsDefault(_CountryRegion))
+        {
+            CountryRegion = _CountryRegion;
+        }
+        return CountryRegion;
+    }
+
+}
