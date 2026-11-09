@@ -1,0 +1,286 @@
+// SalesForce integration - retrieves the mandatory fields (see "Integration Mandatory Fields")
+// as one hierarchy: Customer > Contracts > Property unit
+class TMK_SFIntegrationService
+{
+    // All customers with their contracts and the property unit of each contract
+    public TMK_SFCustomerResp getAllData(TMK_SFRequest Request)
+    {
+        TMK_SFCustomerResp  resp = new TMK_SFCustomerResp();
+
+        try
+        {
+            changecompany(TMK_SFIntegrationService::company(Request))
+            {
+                TMK_SFIntegrationService::addCustomers(resp, '');
+            }
+            TMK_SFIntegrationService::setSuccess(resp);
+        }
+        catch (Exception::CLRError)
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(CLRInterop::getLastException().ToString());
+        }
+        catch
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(TMK_SFIntegrationService::infologText());
+        }
+
+        return resp;
+    }
+
+    // The customer (Request.AccountNum - mandatory) with all its contracts and their property units
+    public TMK_SFCustomerResp getDataByCustomer(TMK_SFRequest Request)
+    {
+        TMK_SFCustomerResp  resp = new TMK_SFCustomerResp();
+
+        try
+        {
+            if (!Request || !Request.parmAccountNum())
+            {
+                throw error("AccountNum is required");
+            }
+
+            changecompany(TMK_SFIntegrationService::company(Request))
+            {
+                TMK_SFIntegrationService::addCustomers(resp, Request.parmAccountNum());
+            }
+            TMK_SFIntegrationService::setSuccess(resp, strFmt("Customer %1 not found", Request.parmAccountNum()));
+        }
+        catch (Exception::CLRError)
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(CLRInterop::getLastException().ToString());
+        }
+        catch
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(TMK_SFIntegrationService::infologText());
+        }
+
+        return resp;
+    }
+
+    // The contract (Request.ContractId - mandatory) under its customer, with its property unit
+    public TMK_SFCustomerResp getDataByContract(TMK_SFRequest Request)
+    {
+        TMK_SFCustomerResp  resp = new TMK_SFCustomerResp();
+
+        try
+        {
+            if (!Request || !Request.parmContractId())
+            {
+                throw error("ContractId is required");
+            }
+
+            changecompany(TMK_SFIntegrationService::company(Request))
+            {
+                TMK_SFIntegrationService::addContracts(resp, Request.parmContractId(), dateNull(), dateNull());
+            }
+            TMK_SFIntegrationService::setSuccess(resp, strFmt("Contract %1 not found", Request.parmContractId()));
+        }
+        catch (Exception::CLRError)
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(CLRInterop::getLastException().ToString());
+        }
+        catch
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(TMK_SFIntegrationService::infologText());
+        }
+
+        return resp;
+    }
+
+    // Contracts whose period lies within Request.FromDate .. Request.ToDate
+    // (contract FromDate >= Request.FromDate and contract ToDate <= Request.ToDate),
+    // grouped under their customers, each with its property unit
+    public TMK_SFCustomerResp getDataByDate(TMK_SFRequest Request)
+    {
+        TMK_SFCustomerResp  resp = new TMK_SFCustomerResp();
+
+        try
+        {
+            if (!Request || !Request.parmFromDate() || !Request.parmToDate())
+            {
+                throw error("FromDate and ToDate are required");
+            }
+            if (Request.parmFromDate() > Request.parmToDate())
+            {
+                throw error("FromDate must be before or equal to ToDate");
+            }
+
+            changecompany(TMK_SFIntegrationService::company(Request))
+            {
+                TMK_SFIntegrationService::addContracts(resp, '', Request.parmFromDate(), Request.parmToDate());
+            }
+            TMK_SFIntegrationService::setSuccess(resp);
+        }
+        catch (Exception::CLRError)
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(CLRInterop::getLastException().ToString());
+        }
+        catch
+        {
+            resp.parmIsSuccess(false);
+            resp.parmMessage(TMK_SFIntegrationService::infologText());
+        }
+
+        return resp;
+    }
+
+    // Customer driven: every customer (or only _accountNum) with all of its contracts,
+    // customers without contracts are returned with an empty Contracts list
+    private static void addCustomers(TMK_SFCustomerResp _resp, CustAccount _accountNum)
+    {
+        CustTable           custTable;
+        DirPartyTable       dirPartyTable;
+        TpmContractTable    tpmContractTable;
+        TMK_SFCustomerData  customer;
+
+        while select custTable
+            order by AccountNum
+            where (!_accountNum || custTable.AccountNum == _accountNum)
+            join dirPartyTable
+                where dirPartyTable.RecId == custTable.Party
+        {
+            customer = TMK_SFIntegrationService::customerData(custTable, dirPartyTable);
+
+            while select tpmContractTable
+                order by ContractId
+                where tpmContractTable.CustAccount == custTable.AccountNum
+            {
+                customer.parmContracts().addEnd(TMK_SFIntegrationService::contractData(tpmContractTable));
+            }
+            _resp.parmData().addEnd(customer);
+        }
+    }
+
+    // Contract driven: only the contracts matching the filters, grouped under their customers
+    private static void addContracts(TMK_SFCustomerResp _resp, TpmContractId _contractId, TransDate _fromDate, TransDate _toDate)
+    {
+        TpmContractTable    tpmContractTable;
+        CustTable           custTable;
+        TMK_SFCustomerData  customer;
+        CustAccount         currentAccount;
+
+        while select tpmContractTable
+            order by CustAccount, ContractId
+            where tpmContractTable.CustAccount != ''
+               && (!_contractId || tpmContractTable.ContractId == _contractId)
+               && (!_fromDate   || tpmContractTable.FromDate   >= _fromDate)
+               && (!_toDate     || tpmContractTable.ToDate     <= _toDate)
+        {
+            if (!customer || tpmContractTable.CustAccount != currentAccount)
+            {
+                currentAccount = tpmContractTable.CustAccount;
+                custTable      = CustTable::find(currentAccount);
+                customer       = TMK_SFIntegrationService::customerData(custTable, DirPartyTable::findRec(custTable.Party));
+                _resp.parmData().addEnd(customer);
+            }
+            customer.parmContracts().addEnd(TMK_SFIntegrationService::contractData(tpmContractTable));
+        }
+    }
+
+    private static TMK_SFCustomerData customerData(CustTable _custTable, DirPartyTable _dirPartyTable)
+    {
+        TMK_SFCustomerData data = new TMK_SFCustomerData();
+
+        data.parmAccountNum(_custTable.AccountNum);
+        data.parmName(_dirPartyTable.Name);
+        data.parmCustomerType(_dirPartyTable.InstanceRelationType == tableNum(DirPerson)
+                                ? enum2Str(DirPartyType::Person)
+                                : enum2Str(DirPartyType::Organization));
+        data.parmCustGroup(_custTable.CustGroup);
+        data.parmCurrency(_custTable.Currency);
+        data.parmCountryRegion(_custTable.PartyCountry);
+        return data;
+    }
+
+    private static TMK_SFContractData contractData(TpmContractTable _tpmContractTable)
+    {
+        TMK_SFContractData  data = new TMK_SFContractData();
+        TpmContractLine     tpmContractLine;
+
+        // Sales tax group / Item sales tax group are taken from the first contract line only
+        select firstonly TaxGroup, TaxItemGroup from tpmContractLine
+            where tpmContractLine.ContractId == _tpmContractTable.ContractId;
+
+        data.parmContractId(_tpmContractTable.ContractId);
+        data.parmDescription(_tpmContractTable.Description);
+        data.parmContractGroup(_tpmContractTable.ContractGroupId);
+        data.parmCustAccount(_tpmContractTable.CustAccount);
+        data.parmFromDate(_tpmContractTable.FromDate);
+        data.parmToDate(_tpmContractTable.ToDate);
+        data.parmPropertyId(_tpmContractTable.PropertyId);
+        data.parmFloorId(_tpmContractTable.PropertyFloorId);
+        data.parmZoneId(_tpmContractTable.PropertyZoneId);
+        data.parmPropertyUnitId(_tpmContractTable.PropertyUnitId);
+        data.parmSalesTaxGroup(tpmContractLine.TaxGroup);
+        data.parmItemSalesTaxGroup(tpmContractLine.TaxItemGroup);
+        data.parmPropertyUnit(TMK_SFIntegrationService::propertyUnitData(_tpmContractTable));
+        return data;
+    }
+
+    // Property unit linked to the contract, null when the contract has no unit
+    private static TMK_SFPropertyUnitData propertyUnitData(TpmContractTable _tpmContractTable)
+    {
+        TMK_SFPropertyUnitData  data;
+        TpmPropertyUnitTable    tpmPropertyUnitTable;
+
+        if (_tpmContractTable.PropertyUnitId)
+        {
+            select firstonly tpmPropertyUnitTable
+                where tpmPropertyUnitTable.PropertyId     == _tpmContractTable.PropertyId
+                   && tpmPropertyUnitTable.PropertyUnitId == _tpmContractTable.PropertyUnitId;
+
+            if (tpmPropertyUnitTable)
+            {
+                data = new TMK_SFPropertyUnitData();
+                data.parmPropertyId(tpmPropertyUnitTable.PropertyId);
+                data.parmFloorId(tpmPropertyUnitTable.PropertyFloorId);
+                data.parmZoneId(tpmPropertyUnitTable.PropertyZoneId);
+                data.parmPropertyUnitId(tpmPropertyUnitTable.PropertyUnitId);
+                data.parmDescription(tpmPropertyUnitTable.Description);
+            }
+        }
+        return data;
+    }
+
+    // Empty result is a success for list requests; pass _notFoundMsg to treat it as a failure
+    private static void setSuccess(TMK_SFCustomerResp _resp, str _notFoundMsg = '')
+    {
+        int counts = _resp.parmData().elements();
+
+        if (!counts && _notFoundMsg)
+        {
+            _resp.parmIsSuccess(false);
+            _resp.parmMessage(_notFoundMsg);
+        }
+        else
+        {
+            _resp.parmIsSuccess(true);
+            _resp.parmMessage(strFmt("%1 customer(s) found", counts));
+        }
+    }
+
+    private static DataAreaId company(TMK_SFRequest _request)
+    {
+        return (_request && _request.parmDataAreaId()) ? _request.parmDataAreaId() : curExt();
+    }
+
+    private static str infologText()
+    {
+        str             msg;
+        SysInfologEnumerator enumerator = SysInfologEnumerator::newData(infolog.cut());
+
+        while (enumerator.moveNext())
+        {
+            msg += enumerator.currentMessage() + '\n';
+        }
+        return msg;
+    }
+
+}
