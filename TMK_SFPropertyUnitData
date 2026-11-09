@@ -1,0 +1,60 @@
+[DataContractAttribute]
+class TMK_SFPropertyUnitData
+{
+    TpmPropertyId PropertyId;
+    TpmPropertyFloorId FloorId;
+    TpmPropertyZoneId ZoneId;
+    TpmPropertyUnitId PropertyUnitId;
+    Description Description;
+
+    [DataMember("PropertyId")]
+    public TpmPropertyId parmPropertyId(TpmPropertyId _PropertyId = PropertyId)
+    {
+        if (!prmIsDefault(_PropertyId))
+        {
+            PropertyId = _PropertyId;
+        }
+        return PropertyId;
+    }
+
+    [DataMember("FloorId")]
+    public TpmPropertyFloorId parmFloorId(TpmPropertyFloorId _FloorId = FloorId)
+    {
+        if (!prmIsDefault(_FloorId))
+        {
+            FloorId = _FloorId;
+        }
+        return FloorId;
+    }
+
+    [DataMember("ZoneId")]
+    public TpmPropertyZoneId parmZoneId(TpmPropertyZoneId _ZoneId = ZoneId)
+    {
+        if (!prmIsDefault(_ZoneId))
+        {
+            ZoneId = _ZoneId;
+        }
+        return ZoneId;
+    }
+
+    [DataMember("PropertyUnitId")]
+    public TpmPropertyUnitId parmPropertyUnitId(TpmPropertyUnitId _PropertyUnitId = PropertyUnitId)
+    {
+        if (!prmIsDefault(_PropertyUnitId))
+        {
+            PropertyUnitId = _PropertyUnitId;
+        }
+        return PropertyUnitId;
+    }
+
+    [DataMember("Description")]
+    public Description parmDescription(Description _Description = Description)
+    {
+        if (!prmIsDefault(_Description))
+        {
+            Description = _Description;
+        }
+        return Description;
+    }
+
+}
