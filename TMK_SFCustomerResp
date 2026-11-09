@@ -1,0 +1,45 @@
+[DataContractAttribute]
+class TMK_SFCustomerResp
+{
+    boolean IsSuccess;
+    str Message;
+    List Data;
+
+    [DataMember("IsSuccess")]
+    public boolean parmIsSuccess(boolean _IsSuccess = IsSuccess)
+    {
+        if (!prmIsDefault(_IsSuccess))
+        {
+            IsSuccess = _IsSuccess;
+        }
+        return IsSuccess;
+    }
+
+    [DataMember("Message")]
+    public str parmMessage(str _Message = Message)
+    {
+        if (!prmIsDefault(_Message))
+        {
+            Message = _Message;
+        }
+        return Message;
+    }
+
+    [DataMember("Data"),
+     AifCollectionTypeAttribute('return', Types::Class, classStr(TMK_SFCustomerData)),
+     AifCollectionTypeAttribute('_Data', Types::Class, classStr(TMK_SFCustomerData))]
+    public List parmData(List _Data = Data)
+    {
+        if (!prmIsDefault(_Data))
+        {
+            Data = _Data;
+        }
+        return Data;
+    }
+
+    public void new()
+    {
+        Data = new List(Types::Class);
+    }
+
+}
