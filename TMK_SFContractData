@@ -1,0 +1,148 @@
+[DataContractAttribute]
+class TMK_SFContractData
+{
+    TpmContractId ContractId;
+    Description Description;
+    TpmContractGroupId ContractGroup;
+    CustAccount CustAccount;
+    TransDate FromDate;
+    TransDate ToDate;
+    TpmPropertyId PropertyId;
+    TpmPropertyFloorId FloorId;
+    TpmPropertyZoneId ZoneId;
+    TpmPropertyUnitId PropertyUnitId;
+    TaxGroup SalesTaxGroup;
+    TaxItemGroup ItemSalesTaxGroup;
+    TMK_SFPropertyUnitData PropertyUnit;
+
+    [DataMember("PropertyUnit")]
+    public TMK_SFPropertyUnitData parmPropertyUnit(TMK_SFPropertyUnitData _PropertyUnit = PropertyUnit)
+    {
+        if (!prmIsDefault(_PropertyUnit))
+        {
+            PropertyUnit = _PropertyUnit;
+        }
+        return PropertyUnit;
+    }
+
+    [DataMember("ContractId")]
+    public TpmContractId parmContractId(TpmContractId _ContractId = ContractId)
+    {
+        if (!prmIsDefault(_ContractId))
+        {
+            ContractId = _ContractId;
+        }
+        return ContractId;
+    }
+
+    [DataMember("Description")]
+    public Description parmDescription(Description _Description = Description)
+    {
+        if (!prmIsDefault(_Description))
+        {
+            Description = _Description;
+        }
+        return Description;
+    }
+
+    [DataMember("ContractGroup")]
+    public TpmContractGroupId parmContractGroup(TpmContractGroupId _ContractGroup = ContractGroup)
+    {
+        if (!prmIsDefault(_ContractGroup))
+        {
+            ContractGroup = _ContractGroup;
+        }
+        return ContractGroup;
+    }
+
+    [DataMember("CustAccount")]
+    public CustAccount parmCustAccount(CustAccount _CustAccount = CustAccount)
+    {
+        if (!prmIsDefault(_CustAccount))
+        {
+            CustAccount = _CustAccount;
+        }
+        return CustAccount;
+    }
+
+    [DataMember("FromDate")]
+    public TransDate parmFromDate(TransDate _FromDate = FromDate)
+    {
+        if (!prmIsDefault(_FromDate))
+        {
+            FromDate = _FromDate;
+        }
+        return FromDate;
+    }
+
+    [DataMember("ToDate")]
+    public TransDate parmToDate(TransDate _ToDate = ToDate)
+    {
+        if (!prmIsDefault(_ToDate))
+        {
+            ToDate = _ToDate;
+        }
+        return ToDate;
+    }
+
+    [DataMember("PropertyId")]
+    public TpmPropertyId parmPropertyId(TpmPropertyId _PropertyId = PropertyId)
+    {
+        if (!prmIsDefault(_PropertyId))
+        {
+            PropertyId = _PropertyId;
+        }
+        return PropertyId;
+    }
+
+    [DataMember("FloorId")]
+    public TpmPropertyFloorId parmFloorId(TpmPropertyFloorId _FloorId = FloorId)
+    {
+        if (!prmIsDefault(_FloorId))
+        {
+            FloorId = _FloorId;
+        }
+        return FloorId;
+    }
+
+    [DataMember("ZoneId")]
+    public TpmPropertyZoneId parmZoneId(TpmPropertyZoneId _ZoneId = ZoneId)
+    {
+        if (!prmIsDefault(_ZoneId))
+        {
+            ZoneId = _ZoneId;
+        }
+        return ZoneId;
+    }
+
+    [DataMember("PropertyUnitId")]
+    public TpmPropertyUnitId parmPropertyUnitId(TpmPropertyUnitId _PropertyUnitId = PropertyUnitId)
+    {
+        if (!prmIsDefault(_PropertyUnitId))
+        {
+            PropertyUnitId = _PropertyUnitId;
+        }
+        return PropertyUnitId;
+    }
+
+    [DataMember("SalesTaxGroup")]
+    public TaxGroup parmSalesTaxGroup(TaxGroup _SalesTaxGroup = SalesTaxGroup)
+    {
+        if (!prmIsDefault(_SalesTaxGroup))
+        {
+            SalesTaxGroup = _SalesTaxGroup;
+        }
+        return SalesTaxGroup;
+    }
+
+    [DataMember("ItemSalesTaxGroup")]
+    public TaxItemGroup parmItemSalesTaxGroup(TaxItemGroup _ItemSalesTaxGroup = ItemSalesTaxGroup)
+    {
+        if (!prmIsDefault(_ItemSalesTaxGroup))
+        {
+            ItemSalesTaxGroup = _ItemSalesTaxGroup;
+        }
+        return ItemSalesTaxGroup;
+    }
+
+}
